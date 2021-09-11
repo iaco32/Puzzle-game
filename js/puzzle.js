@@ -186,8 +186,8 @@ document.addEventListener('DOMContentLoaded',function() {
         this.touchSlot = null;
         this.clientX = null;
         this.clientY = null;
-        this.clientX = null;
-        this.clientY = null;
+        this.dropClientX = null;
+        this.dropClientY = null;
         this.lastPlace = null;
 		this.gridSize = null;
 		this.stepCount = 0;
@@ -400,10 +400,9 @@ document.addEventListener('DOMContentLoaded',function() {
                                     && typeof instance.settings.touchhover === "function") {
                                     instance.settings.touchhover(params);
                                 }
+                                instance.dropClientX = evt.touches[0].clientX;
+                                instance.dropClientY = evt.touches[0].clientY;
                             }
-
-                            instance.clientX = evt.touches[0].clientX;
-                            instance.clientY = evt.touches[0].clientY;
                         });
                     }
                 }
@@ -601,7 +600,6 @@ document.addEventListener('DOMContentLoaded',function() {
                 });
 
                 // Drop events
-
                 slots[index].addEventListener('dragenter', function(evt) {
                     evt.preventDefault(); // enables drop event
 
@@ -680,7 +678,6 @@ document.addEventListener('DOMContentLoaded',function() {
                 });
 
                 // Touch events for mobile
-
                 slots[index].addEventListener('touchstart', function(evt) {
                     instance.touchSlot = evt.targetTouches;
                     instance.offsetY = Math.round(evt.touches[0].clientY - evt.target.getBoundingClientRect().top);
@@ -727,6 +724,9 @@ document.addEventListener('DOMContentLoaded',function() {
                         let right = slots[ind].getBoundingClientRect().right;
                         let left = slots[ind].getBoundingClientRect().left;
 
+                        instance.clientX = instance.dropClientX;
+                        instance.clientY = instance.dropClientY;
+
                         if ( instance.clientX > left &&
                              instance.clientX < right &&
                              instance.clientY > top &&
@@ -757,8 +757,11 @@ document.addEventListener('DOMContentLoaded',function() {
                             // check correct number of tiles
                             instance.correctTiles();
 
-                            steps.textContent = ++instance.stepCount;
-
+                            if (instance.isSorted(instance.getTiles())) {
+                                steps.textContent = instance.stepCount;
+                            } else {
+                                steps.textContent = ++instance.stepCount;   
+                            }
                             // Run callback functions
                             runCallBacks(slot,dragSlot,tile,dragTile,evt);
 
@@ -776,7 +779,6 @@ document.addEventListener('DOMContentLoaded',function() {
                 });
 
                 // Reset slot
-
                 slots[index].addEventListener('transitionend', function(evt) {
                     // Remove highlight
                     if (evt.target.style.transform === "translate(0px, 0px)") {
@@ -1003,7 +1005,7 @@ document.addEventListener('DOMContentLoaded',function() {
                 shuffleArr(array);
             }
 
-            // make sure array never has a correct tile on expert
+            // make sure array never has a correct tile
             if(instance.correctTiles(array)) {
                 array.forEach(function(arr){
                     arr[1].dataset.inplace = "";
